@@ -51,6 +51,8 @@ func ExploreBook(url string) {
     log.Fatal(err)
   }
 
+  openedSite := make(map[string]bool)
+
   // Find the review items
   doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		// For each item found, get the title
@@ -60,8 +62,9 @@ func ExploreBook(url string) {
         for k := 0; k < len(s.Nodes[j].Attr); k++ {
           //fmt.Printf("SAttr %d: %s\n", k, s.Nodes[j].Attr[k])
           href := s.Nodes[j].Attr[k].Val
-          if (strings.HasPrefix(href, "http")) {
+          if (strings.HasPrefix(href, "http") && !openedSite[href]) {
               openbrowser(href)
+              openedSite[href] = true
               continue OUTTER
           }
         }
