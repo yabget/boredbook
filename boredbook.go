@@ -7,6 +7,9 @@ import (
   "strings"
   "runtime"
   "os/exec"
+  "bufio"
+  "os"
+  "time"
 
   "github.com/PuerkitoBio/goquery"
 )
@@ -31,9 +34,9 @@ func openbrowser(url string) {
 }
 
 // https://pkg.go.dev/github.com/PuerkitoBio/goquery
-func ExploreBook() {
+func ExploreBook(url string) {
   // Request the HTML page.
-  res, err := http.Get("https://human.capital/")
+  res, err := http.Get(url)
   if err != nil {
     log.Fatal(err)
   }
@@ -51,8 +54,6 @@ func ExploreBook() {
   // Find the review items
   doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		// For each item found, get the title
-		title := s.Text()
-		fmt.Printf("Review %d: %s\n", i, title)
 
     OUTTER:
     for j := 0; j < len(s.Nodes); j++ {
@@ -60,7 +61,6 @@ func ExploreBook() {
           //fmt.Printf("SAttr %d: %s\n", k, s.Nodes[j].Attr[k])
           href := s.Nodes[j].Attr[k].Val
           if (strings.HasPrefix(href, "http")) {
-              fmt.Printf("SVal %d: %s\n", k, href)
               openbrowser(href)
               continue OUTTER
           }
@@ -70,5 +70,54 @@ func ExploreBook() {
 }
 
 func main() {
-  ExploreBook()
+
+  // https://gosamples.dev/read-user-input/
+  fmt.Printf("Extracting urls from bookmarks.html\n")
+
+  err := exec.Command("./extractURLs.sh", "bookmarks.html").Start()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  time.Sleep(2 * time.Second)
+
+  // https://stackoverflow.com/questions/8757389/reading-a-file-line-by-line-in-go
+  urlsFile, err := os.Open("urls.txt")
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer urlsFile.Close()
+
+  sites := make([]string, 0, 0)
+
+  scanner := bufio.NewScanner(urlsFile)
+  for scanner.Scan() {
+    url := scanner.Text()
+    sites = append(sites, url)
+  }
+
+  if err := scanner.Err(); err != nil {
+    log.Fatal(err)
+  }
+
+  for i := 0; i < len(sites); i++ {
+    siteToExplore := sites[i]
+    openbrowser(sites[i])
+    fmt.Printf("Do you want to explore %s ? (yes/no/exit)\n", siteToExplore)
+    var yesNoExit string
+    _, err := fmt.Scanln(&yesNoExit)
+    if err != nil {
+      log.Fatal(err)
+    }
+
+    if yesNoExit == "yes" {
+      fmt.Printf("Visiting site: %s\n", siteToExplore)
+      ExploreBook(siteToExplore)
+    } else if yesNoExit == "no" {
+      fmt.Printf("Skipping site.\n")
+    } else {
+      fmt.Printf("Exiting program. Goodbye.\n")
+      break;
+    }
+  }
 }
