@@ -74,10 +74,28 @@ func ExploreBook(url string) {
 
 func main() {
 
+  skipSites := make(map[string]bool)
+
+  skipExploreFile, err := os.Open("skipExplore.txt")
+  if err != nil {
+    log.Printf("Could not find or open skipExplore.txt: %s\n", err)
+  } else {
+    scanner := bufio.NewScanner(skipExploreFile)
+    for scanner.Scan() {
+      siteToSkip := scanner.Text()
+      skipSites[siteToSkip] = true
+    }
+
+    if err := scanner.Err(); err != nil {
+      log.Fatal(err)
+    }
+  }
+  defer skipExploreFile.Close()
+
   // https://gosamples.dev/read-user-input/
   fmt.Printf("Extracting urls from bookmarks.html\n")
 
-  err := exec.Command("./extractURLs.sh", "bookmarks.html").Start()
+  err = exec.Command("./extractURLs.sh", "bookmarks.html").Start()
   if err != nil {
     log.Fatal(err)
   }
@@ -96,31 +114,49 @@ func main() {
   scanner := bufio.NewScanner(urlsFile)
   for scanner.Scan() {
     url := scanner.Text()
-    sites = append(sites, url)
+    if !skipSites[url] {
+      sites = append(sites, url)
+    }
   }
 
   if err := scanner.Err(); err != nil {
     log.Fatal(err)
   }
 
+  // https://pkg.go.dev/os#example-OpenFile-Append
+  skipNextTimeFile, err := os.OpenFile("skipExplore.txt",
+    os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+  if err != nil {
+    log.Fatal(err)
+  }
+
   for i := 0; i < len(sites); i++ {
     siteToExplore := sites[i]
-    openbrowser(sites[i])
-    fmt.Printf("Do you want to explore %s ? (yes/no/exit)\n", siteToExplore)
-    var yesNoExit string
-    _, err := fmt.Scanln(&yesNoExit)
+
+    fmt.Printf("Do you want to explore %s ? (yes/no/skip/exit)\n", siteToExplore)
+    var yesNoSkipExit string
+    _, err := fmt.Scanln(&yesNoSkipExit)
     if err != nil {
       log.Fatal(err)
     }
 
-    if yesNoExit == "yes" {
+    if yesNoSkipExit == "yes" {
+      openbrowser(sites[i])
       fmt.Printf("Visiting site: %s\n", siteToExplore)
       ExploreBook(siteToExplore)
-    } else if yesNoExit == "no" {
+    } else if yesNoSkipExit == "no" {
       fmt.Printf("Skipping site.\n")
+    } else if yesNoSkipExit == "skip" {
+      if _, err := skipNextTimeFile.Write([]byte(siteToExplore + "\n")); err != nil {
+        skipNextTimeFile.Close()
+        log.Fatal(err)
+      }
     } else {
       fmt.Printf("Exiting program. Goodbye.\n")
       break;
     }
+  }
+  if err := skipNextTimeFile.Close(); err != nil {
+    log.Fatal(err)
   }
 }
