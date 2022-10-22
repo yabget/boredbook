@@ -72,11 +72,12 @@ func ExploreBook(url string) {
 	})
 }
 
-func main() {
-
+func getSitesToSkip() map[string]bool {
   skipSites := make(map[string]bool)
 
   skipExploreFile, err := os.Open("skipExplore.txt")
+  defer skipExploreFile.Close()
+
   if err != nil {
     log.Printf("Could not find or open skipExplore.txt: %s\n", err)
   } else {
@@ -90,12 +91,19 @@ func main() {
       log.Fatal(err)
     }
   }
-  defer skipExploreFile.Close()
+
+  return skipSites
+}
+
+func main() {
+
+  fmt.Printf("Gathering sites to skip during exploring.\n")
+  skipSites := getSitesToSkip()
 
   // https://gosamples.dev/read-user-input/
   fmt.Printf("Extracting urls from bookmarks.html\n")
 
-  err = exec.Command("./extractURLs.sh", "bookmarks.html").Start()
+  err := exec.Command("./extractURLs.sh", "bookmarks.html").Start()
   if err != nil {
     log.Fatal(err)
   }
