@@ -34,7 +34,7 @@ func openbrowser(url string) {
 }
 
 // https://pkg.go.dev/github.com/PuerkitoBio/goquery
-func ExploreBook(url string) {
+func exploreSite(url string) {
   // Request the HTML page.
   res, err := http.Get(url)
   if err != nil {
@@ -130,18 +130,7 @@ func getSitesToExplore(skipSites map[string]bool) []string {
   return sites
 }
 
-func main() {
-
-  fmt.Printf("Gathering sites to skip during exploring.\n")
-  skipSites := getSitesToSkip()
-
-  // https://gosamples.dev/read-user-input/
-  fmt.Printf("Extracting urls from bookmarks.html\n")
-  extractURLsFromHTML()
-
-  fmt.Printf("Retrieving sites to explore.\n")
-  sites := getSitesToExplore(skipSites)
-
+func exploreSites(sites []string) {
   // https://pkg.go.dev/os#example-OpenFile-Append
   skipNextTimeFile, err := os.OpenFile("skipExplore.txt",
     os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -152,7 +141,9 @@ func main() {
   for i := 0; i < len(sites); i++ {
     siteToExplore := sites[i]
 
+    // https://gosamples.dev/read-user-input/
     fmt.Printf("Do you want to explore %s ? (yes/no/skip/exit)\n", siteToExplore)
+
     var yesNoSkipExit string
     _, err := fmt.Scanln(&yesNoSkipExit)
     if err != nil {
@@ -160,11 +151,11 @@ func main() {
     }
 
     if yesNoSkipExit == "yes" {
-      openbrowser(sites[i])
       fmt.Printf("Visiting site: %s\n", siteToExplore)
-      ExploreBook(siteToExplore)
+      openbrowser(siteToExplore)
+      exploreSite(siteToExplore)
     } else if yesNoSkipExit == "no" {
-      fmt.Printf("Skipping site.\n")
+      fmt.Printf("Not exploring site.\n")
     } else if yesNoSkipExit == "skip" {
       if _, err := skipNextTimeFile.Write([]byte(siteToExplore + "\n")); err != nil {
         skipNextTimeFile.Close()
@@ -178,4 +169,19 @@ func main() {
   if err := skipNextTimeFile.Close(); err != nil {
     log.Fatal(err)
   }
+}
+
+func main() {
+
+  fmt.Printf("Extracting urls from bookmarks.html\n")
+  extractURLsFromHTML()
+
+  fmt.Printf("Gathering sites to skip during exploring.\n")
+  skipSites := getSitesToSkip()
+
+  fmt.Printf("Retrieving sites to explore.\n")
+  sites := getSitesToExplore(skipSites)
+
+  fmt.Printf("Starting exploration of sites.\n")
+  exploreSites(sites)
 }
