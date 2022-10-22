@@ -95,6 +95,16 @@ func getSitesToSkip() map[string]bool {
   return skipSites
 }
 
+func extractURLsFromHTML() {
+  err := exec.Command("./extractURLs.sh", "bookmarks.html").Start()
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  // sleep to let the script run before resuming program
+  time.Sleep(2 * time.Second)
+}
+
 func main() {
 
   fmt.Printf("Gathering sites to skip during exploring.\n")
@@ -102,13 +112,7 @@ func main() {
 
   // https://gosamples.dev/read-user-input/
   fmt.Printf("Extracting urls from bookmarks.html\n")
-
-  err := exec.Command("./extractURLs.sh", "bookmarks.html").Start()
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  time.Sleep(2 * time.Second)
+  extractURLsFromHTML()
 
   // https://stackoverflow.com/questions/8757389/reading-a-file-line-by-line-in-go
   urlsFile, err := os.Open("urls.txt")
