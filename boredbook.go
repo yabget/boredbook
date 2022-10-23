@@ -159,7 +159,7 @@ func exploreSites(sites []string) {
 		log.Fatal(err)
 	}
 
-  EndExplore:
+EndExplore:
 	for i := 0; i < len(sites); i++ {
 		siteToExplore := sites[i]
 
@@ -172,22 +172,22 @@ func exploreSites(sites []string) {
 			log.Fatal(err)
 		}
 
-    switch yesNoSkipExit {
-      case "yes":
-        fmt.Printf("Visiting site: %s\n", siteToExplore)
-        openbrowser(siteToExplore)
-        exploreSite(siteToExplore)
-      case "no":
-        fmt.Printf("Not exploring site.\n")
-      case "skip":
-        if _, err := skipNextTimeFile.Write([]byte(siteToExplore + "\n")); err != nil {
-          skipNextTimeFile.Close()
-          log.Fatal(err)
-        }
-      default:
-        fmt.Printf("Exiting program. Goodbye.\n")
-        break EndExplore
-    }
+		switch yesNoSkipExit {
+		case "yes":
+			fmt.Printf("Visiting site: %s\n", siteToExplore)
+			openbrowser(siteToExplore)
+			exploreSite(siteToExplore)
+		case "no":
+			fmt.Printf("Not exploring site.\n")
+		case "skip":
+			if _, err := skipNextTimeFile.Write([]byte(siteToExplore + "\n")); err != nil {
+				skipNextTimeFile.Close()
+				log.Fatal(err)
+			}
+		default:
+			fmt.Printf("Exiting program. Goodbye.\n")
+			break EndExplore
+		}
 
 	}
 	if err := skipNextTimeFile.Close(); err != nil {
