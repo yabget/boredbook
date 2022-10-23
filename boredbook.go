@@ -56,25 +56,6 @@ func exploreSite(url string) {
 	openedSitesCount := 0
 	// Find the review items
 	doc.Find("a").EachWithBreak(func(i int, s *goquery.Selection) bool {
-		// For each item found, get the title
-		if openedSitesCount%5 == 0 {
-			fmt.Printf(
-				"You have explored %d sites, do you want to open the next 5? (yes/no)\n",
-				openedSitesCount)
-
-			var yesNo string
-			_, err := fmt.Scanln(&yesNo)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if yesNo == "yes" {
-				// continue opening sites to explore
-			} else {
-				// exit exploring site
-				return false
-			}
-		}
 
 	OUTTER:
 		for j := 0; j < len(s.Nodes); j++ {
@@ -82,6 +63,25 @@ func exploreSite(url string) {
 				//fmt.Printf("SAttr %d: %s\n", k, s.Nodes[j].Attr[k])
 				href := s.Nodes[j].Attr[k].Val
 				if strings.HasPrefix(href, "http") && !openedSite[href] {
+					if openedSitesCount%5 == 0 {
+						fmt.Printf(
+							"You have explored %d sites, do you want to open the next 5? (yes/no)\n",
+							openedSitesCount)
+
+						var yesNo string
+						_, err := fmt.Scanln(&yesNo)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						if yesNo == "yes" {
+							// continue opening sites to explore
+						} else {
+							// exit exploring site
+							return false
+						}
+					}
+
 					openbrowser(href)
 					openedSite[href] = true
 					openedSitesCount++
