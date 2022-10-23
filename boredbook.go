@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -119,13 +118,38 @@ func getSitesToSkip() map[string]bool {
 }
 
 func extractURLsFromHTML() {
-	err := exec.Command("./extractURLs.sh", "bookmarks.html").Start()
+	f, err := os.Open("bookmarks.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	doc, err := goquery.NewDocumentFromReader(f)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// sleep to let the script run before resuming program
-	time.Sleep(2 * time.Second)
+	urlsFile, err := os.OpenFile("urls.txt",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doc.Find("a").EachWithBreak(func(i int, s *goquery.Selection) bool {
+		for j := 0; j < len(s.Nodes); j++ {
+			for k := 0; k < len(s.Nodes[j].Attr); k++ {
+				href := s.Nodes[j].Attr[k].Val
+				if strings.HasPrefix(href, "http") {
+					if _, err := urlsFile.Write([]byte(href + "\n")); err != nil {
+						urlsFile.Close()
+						log.Fatal(err)
+					}
+				}
+			}
+		}
+		return true
+	})
+
 }
 
 func getSitesToExplore(skipSites map[string]bool) []string {
