@@ -21,7 +21,7 @@ const (
 )
 
 // https://gist.github.com/hyg/9c4afcd91fe24316cbf0
-func openbrowser(url string) {
+func openBrowser(url string) {
 	var err error
 
 	switch runtime.GOOS {
@@ -90,7 +90,7 @@ func exploreSite(url string) {
 						}
 					}
 
-					openbrowser(href)
+					openBrowser(href)
 					openedSite[href] = true
 					openedSitesCount++
 					continue OUTTER
@@ -208,7 +208,7 @@ EndExplore:
 		switch yesNoSkipExit {
 		case "yes":
 			fmt.Printf("Visiting site: %s\n", siteToExplore)
-			openbrowser(siteToExplore)
+			openBrowser(siteToExplore)
 			exploreSite(siteToExplore)
 		case "no":
 			fmt.Printf("Not exploring site.\n")
