@@ -13,6 +13,13 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const (
+	BOOKMARKS_FILENAME       = "bookmarks.html"
+	URLS_TO_EXPLORE_FILENAME = "urls.txt"
+	SKIP_EXPLORE_FILENAME    = "skipExplore.txt"
+	HTTP_PREFIX              = "http"
+)
+
 // https://gist.github.com/hyg/9c4afcd91fe24316cbf0
 func openbrowser(url string) {
 	var err error
@@ -63,7 +70,7 @@ func exploreSite(url string) {
 			for k := 0; k < len(s.Nodes[j].Attr); k++ {
 				//fmt.Printf("SAttr %d: %s\n", k, s.Nodes[j].Attr[k])
 				href := s.Nodes[j].Attr[k].Val
-				if strings.HasPrefix(href, "http") && !openedSite[href] {
+				if strings.HasPrefix(href, HTTP_PREFIX) && !openedSite[href] {
 					if openedSitesCount%5 == 0 {
 						fmt.Printf(
 							"You have explored %d sites, do you want to open the next 5? (yes/no)\n",
@@ -97,11 +104,11 @@ func exploreSite(url string) {
 func getSitesToSkip() map[string]bool {
 	skipSites := make(map[string]bool)
 
-	skipExploreFile, err := os.Open("skipExplore.txt")
+	skipExploreFile, err := os.Open(SKIP_EXPLORE_FILENAME)
 	defer skipExploreFile.Close()
 
 	if err != nil {
-		log.Printf("Could not find or open skipExplore.txt: %s\n", err)
+		log.Printf("Could not find or open %s: %s\n", SKIP_EXPLORE_FILENAME, err)
 	} else {
 		scanner := bufio.NewScanner(skipExploreFile)
 		for scanner.Scan() {
@@ -118,7 +125,7 @@ func getSitesToSkip() map[string]bool {
 }
 
 func extractURLsFromHTML() {
-	f, err := os.Open("bookmarks.html")
+	f, err := os.Open(BOOKMARKS_FILENAME)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -129,7 +136,7 @@ func extractURLsFromHTML() {
 		log.Fatal(err)
 	}
 
-	urlsFile, err := os.OpenFile("urls.txt",
+	urlsFile, err := os.OpenFile(URLS_TO_EXPLORE_FILENAME,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -139,7 +146,7 @@ func extractURLsFromHTML() {
 		for j := 0; j < len(s.Nodes); j++ {
 			for k := 0; k < len(s.Nodes[j].Attr); k++ {
 				href := s.Nodes[j].Attr[k].Val
-				if strings.HasPrefix(href, "http") {
+				if strings.HasPrefix(href, HTTP_PREFIX) {
 					if _, err := urlsFile.Write([]byte(href + "\n")); err != nil {
 						urlsFile.Close()
 						log.Fatal(err)
@@ -154,7 +161,7 @@ func extractURLsFromHTML() {
 
 func getSitesToExplore(skipSites map[string]bool) []string {
 	// https://stackoverflow.com/questions/8757389/reading-a-file-line-by-line-in-go
-	urlsFile, err := os.Open("urls.txt")
+	urlsFile, err := os.Open(URLS_TO_EXPLORE_FILENAME)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -179,7 +186,7 @@ func getSitesToExplore(skipSites map[string]bool) []string {
 
 func exploreSites(sites []string) {
 	// https://pkg.go.dev/os#example-OpenFile-Append
-	skipNextTimeFile, err := os.OpenFile("skipExplore.txt",
+	skipNextTimeFile, err := os.OpenFile(SKIP_EXPLORE_FILENAME,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -223,7 +230,7 @@ EndExplore:
 
 func main() {
 
-	fmt.Printf("Extracting urls from bookmarks.html\n")
+	fmt.Printf("Extracting urls from %s\n", BOOKMARKS_FILENAME)
 	extractURLsFromHTML()
 
 	fmt.Printf("Gathering sites to skip during exploring.\n")
