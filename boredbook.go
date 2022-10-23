@@ -42,7 +42,9 @@ func exploreSite(url string) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		log.Printf("status code error: %d %s", res.StatusCode, res.Status)
+		log.Printf("Skipping %s", url)
+		return
 	}
 
 	// Load the HTML document
