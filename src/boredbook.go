@@ -136,6 +136,11 @@ func extractURLsFromHTML() {
 		log.Fatal(err)
 	}
 
+	err = os.Remove(URLS_TO_EXPLORE_FILENAME)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	urlsFile, err := os.OpenFile(URLS_TO_EXPLORE_FILENAME,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
