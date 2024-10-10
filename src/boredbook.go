@@ -1,13 +1,12 @@
 package main
 
 import (
+	"boredbook/browser"
 	"bufio"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,25 +18,6 @@ const (
 	SKIP_EXPLORE_FILENAME    = "skipExplore.txt"
 	HTTP_PREFIX              = "http"
 )
-
-// https://gist.github.com/hyg/9c4afcd91fe24316cbf0
-func openBrowser(url string) {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 // https://pkg.go.dev/github.com/PuerkitoBio/goquery
 func exploreSite(url string) {
@@ -90,7 +70,7 @@ func exploreSite(url string) {
 						}
 					}
 
-					openBrowser(href)
+					browser.Open(href)
 					openedSite[href] = true
 					openedSitesCount++
 					continue OUTTER
@@ -213,7 +193,7 @@ EndExplore:
 		switch yesNoSkipExit {
 		case "yes":
 			fmt.Printf("Visiting site: %s\n", siteToExplore)
-			openBrowser(siteToExplore)
+			browser.Open(siteToExplore)
 			exploreSite(siteToExplore)
 		case "no":
 			fmt.Printf("Not exploring site.\n")
