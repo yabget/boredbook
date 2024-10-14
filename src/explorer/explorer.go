@@ -60,7 +60,9 @@ func ExploreSite(url string) {
 	// Request the HTML page.
 	res, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error with getting the site -> %s", url)
+		log.Println(err)
+		return
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
