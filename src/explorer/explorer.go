@@ -89,7 +89,7 @@ func ExploreSite(url string) {
 				if strings.HasPrefix(href, constants.HTTP_PREFIX) && !openedSite[href] {
 					if openedSitesCount%5 == 0 {
 						fmt.Printf(
-							"You have explored %d sites, do you want to open the next 5? (yes/no)\n",
+							"You have explored %d links, do you want to open the next 5? (yes/no)\n",
 							openedSitesCount)
 
 						var yesNo string
